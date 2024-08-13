@@ -91,18 +91,19 @@ int Shell::spawn_cmd() {
 
     int status{};
     do {
+      std::array<char, 1024 * 4> buffer{0};
+      while (read(stdout_pipes[0], buffer.data(), buffer.size()) > 0) {
+        std::cout << std::string_view(buffer.begin(), buffer.end());
+      }
+      buffer.fill(0);
+
+      while (read(stderr_pipes[0], buffer.data(), buffer.size()) > 0) {
+        std::cerr << std::string_view(buffer.begin(), buffer.end());
+      }
+      buffer.fill(0);
+
       waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-
-    std::array<char, 1024 * 4> buffer{0};
-    while (read(stdout_pipes[0], buffer.data(), buffer.size()) > 0) {
-      std::cout << std::string_view(buffer.begin(), buffer.end());
-    }
-
-    buffer.fill(0);
-    while (read(stderr_pipes[0], buffer.data(), buffer.size()) > 0) {
-      std::cerr << std::string_view(buffer.begin(), buffer.end());
-    }
 
     return WEXITSTATUS(status);
   }

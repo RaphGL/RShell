@@ -4,13 +4,17 @@
 #include <string_view>
 #include <unistd.h>
 #include <unordered_map>
+#include <iostream>
 
 static int cd(int argc, char *argv[]) {
-  if (argc == 1) {
-    return chdir(getenv("HOME"));
+  char *path = argc == 1 ? getenv("HOME") : argv[1];
+
+  auto ret = chdir(path);
+  if (ret == ENOENT) {
+    std::cerr << "cd: no such file or directory: " << path << '\n';
   }
 
-  return chdir(argv[0]);
+  return ret;
 }
 
 static const std::unordered_map<std::string_view,
